@@ -3,9 +3,8 @@
 #define constants
 
 import numpy as np
-h_bar = 1
-m = 1
-L = 1
+h_bar, m, L = 1, 1, 1
+
 
 grid = np.linspace(-L / 2, L / 2, 2000, endpoint=True)
 delt_x = grid[1] - grid[0]
@@ -44,9 +43,7 @@ for i in range(squeezed_eigvecs.shape[0]):
 plt.title("Wavefunctions in a 1-D potential well")
 plt.xlabel("L (a0)")
 plt.ylabel("Wavefunction")
+plt.xlim(-L / 2, L / 2)
 plt.legend(fontsize='small', title="Energy Levels", title_fontsize='medium', bbox_to_anchor=(1.05, 1))
 plt.grid()
 plt.show()
-
-
-
