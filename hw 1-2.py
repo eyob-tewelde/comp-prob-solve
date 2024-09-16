@@ -43,12 +43,13 @@ def calc_bond_length(atom1, atom2):
 
     Parameters:
         atom1: [float/int, float/int, float/int]
-            one of the compared atoms
+            a list of Cartesian Coordinates for a given atom
+
         atom2: [float/int, float/int, float/int]
-            one of the compared atoms 
-    
+            a list of Cartesian Coordinates for a given atom
+
     Returns:
-        int: the distance between the two atoms
+        int: the distance between the two atoms in Angstroms
         str: a warning message if the calculated distance is greater than 2 Angstroms
 
     """
@@ -66,4 +67,46 @@ def calc_bond_length(atom1, atom2):
     
     return print('the bond length is: ' + str(float(d)))
 
+
+#Part 3: Bond Angle Calculation
+
+def calc_bond_angle(atom1, atom2, atom3):
+    """
+    Calculates the bond angle between three atoms.
+
+    Parameters:
+        atom1: [float, float, float]
+            a list of Cartesian Coordinates for a given atom
+
+        atom2: [float, float, float]
+            a list of Cartesian Coordinates for a given atom
+
+        atom2: [float, float, float]
+            a list of Cartesian Coordinates for a given atom
+
+    Returns:
+        int: the angle between the atoms
+        str: acute, obtuse, or right depending on the bond angle
+    """
+    atm1_array = np.array(atom1)
+    atm2_array = np.array(atom2)
+    atm3_array = np.array(atom3)
+
+    atm1_atm2 = atm1_array - atm2_array
+    atm2_atm3 = atm2_array - atm3_array
+
+    mag12 = np.linalg.norm(atm1_atm2)
+    mag23 = np.linalg.norm(atm2_atm3)
+
+    angle_rad = np.arccos(np.dot(atm1_atm2, atm2_atm3) / (mag12 * mag23))
+    angle = np.degrees(angle_rad)
+    
+    if angle > 90:
+        print(str(angle) + ": obtuse")
+    elif angle == 90:
+        print(str(angle) + ": right")
+    else:
+        print(str(angle) + ": acute")
+
+    return None
 
