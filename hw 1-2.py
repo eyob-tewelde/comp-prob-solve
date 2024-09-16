@@ -64,8 +64,10 @@ def calc_bond_length(atom1, atom2):
 
     if d >= 2:
         print("Uh oh! These atoms are not in a covalent bond.")
+    else:
+        print('the bond length is: ' + str(float(d)))
     
-    return print('the bond length is: ' + str(float(d)))
+    return float(d)
 
 
 #Part 3: Bond Angle Calculation
@@ -108,5 +110,50 @@ def calc_bond_angle(atom1, atom2, atom3):
     else:
         print(str(angle) + ": acute")
 
-    return None
+    return float(angle)
 
+#Part 4: Automating the Calculation of Unique Bond Lengths and Angles
+
+def calc_all_bond_lengths(molecule):
+    """
+    
+    
+    """
+    dup = []
+    bond_lengths = []
+    for atom1, coord1 in molecule.items():
+        for atom2, coord2 in molecule.items():
+            if atom1 != atom2:
+                pair = sorted((atom1, atom2))
+                if pair not in dup:
+                    dup.append(pair)
+                    bond_lengths.append((atom1 + " + " + atom2, calc_bond_length(coord1, coord2)))
+
+    
+    return bond_lengths
+
+def calc_all_bond_angles(molecule):
+    """
+    
+    """
+    dup = []
+    bond_angles = []
+    for atom1, coord1 in molecule.items():
+        for atom2, coord2 in molecule.items():
+            for atom3, coord3 in molecule.items():
+                if atom1 != atom2 and atom1 != atom3 and atom2 != atom3:
+                    group = sorted((atom1, atom2, atom3))
+                    if group not in dup:
+                        dup.append(group)
+                        bond_angles.append((atom1 + " + " + atom2 + " + " + atom3, calc_bond_angle(coord1, coord2, coord3)))
+
+        
+    return bond_angles
+
+water_bond_angles, water_bond_lengths = calc_all_bond_angles(water), calc_all_bond_lengths(water)
+hydrogen_bond_angles, hydrogen_bond_lengths = calc_all_bond_angles(hydrogen), calc_all_bond_lengths(hydrogen)
+benzene_bond_angles, benzene_bond_lengths = calc_all_bond_angles(benzene), calc_all_bond_lengths(benzene)
+
+print(water_bond_angles, water_bond_lengths)
+print(hydrogen_bond_angles, hydrogen_bond_lengths)
+print(benzene_bond_angles, benzene_bond_lengths)
