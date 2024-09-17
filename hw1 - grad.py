@@ -54,7 +54,7 @@ for i in range(squeezed_eigvecs.shape[0]):
 
 
 
-plt.title("Wavefunctions in a 1-D potential well")
+plt.title("Wavefunctions in an infinite 1-D potential well")
 plt.xlabel("L (a0)")
 plt.ylabel("Wavefunction")
 plt.xlim(-L / 2, L / 2)
