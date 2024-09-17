@@ -2,6 +2,7 @@
 #Part 1: Importing and Exporting Data
 
 #dictonaries containing the cartesian coordinates of water, diatomic hydrogen, and benzene
+
 water = {
     "O1": [0, 0, 0.1173],
     "H2": [0, 0.7572, -0.4692],
@@ -14,12 +15,12 @@ hydrogen = {
 }
 
 benzene = {
-    "C1": [0, 1.397, 0] ,
-    "C2": [1.20098, 0.6985, 0],
-    "C3": [1.20098, -0.6985, 0],
+    "C1": [0, 1.397, 0],
+    "C2": [1.2098, 0.6985, 0],
+    "C3": [1.2098, -0.6985, 0],
     "C4": [0, -1.397, 0],
-    "C5": [-1.20098, -0.6985 ,0],
-    "C6": [-1.20098, 0.6985, 0],
+    "C5": [-1.2098, -0.6985 ,0],
+    "C6": [-1.2098, 0.6985, 0],
     "H7": [0, 2.481, 0],
     "H8": [2.1486, 1.2405, 0],
     "H9": [2.1486, -1.2405, 0],
@@ -28,9 +29,10 @@ benzene = {
     "H12": [-2.1486, 1.2405, 0],
 }
 
-#print(hydrogen)
-#print(benzene)
-#print(water)
+print(hydrogen)
+print(benzene)
+print(water)
+
 
 #Part 2: Bond Length Calculation
 
@@ -42,10 +44,10 @@ def calc_bond_length(atom1, atom2):
     bond length is greater than 2 Angstroms
 
     Parameters:
-        atom1: [float/int, float/int, float/int]
+        atom1: list of float or int
             a list of Cartesian Coordinates for a given atom
 
-        atom2: [float/int, float/int, float/int]
+        atom2: list of float or int
             a list of Cartesian Coordinates for a given atom
 
     Returns:
@@ -63,7 +65,7 @@ def calc_bond_length(atom1, atom2):
     d = np.sqrt(sum)
 
     if d >= 2:
-        print("Uh oh! These atoms are not in a covalent bond.")
+        print("Uh oh! These atoms might not be in a covalent bond.")
     else:
         print('the bond length is: ' + str(float(d)))
     
@@ -77,13 +79,13 @@ def calc_bond_angle(atom1, atom2, atom3):
     Calculates the bond angle between three atoms.
 
     Parameters:
-        atom1: [float, float, float]
+        atom1: list of float or int
             a list of Cartesian Coordinates for a given atom
 
-        atom2: [float, float, float]
+        atom2: list of float or int
             a list of Cartesian Coordinates for a given atom
 
-        atom2: [float, float, float]
+        atom2: list of float or int
             a list of Cartesian Coordinates for a given atom
 
     Returns:
@@ -116,7 +118,16 @@ def calc_bond_angle(atom1, atom2, atom3):
 
 def calc_all_bond_lengths(molecule):
     """
-    
+    Calculates the bond length of every unique pair of atoms in a molecule
+
+    Parameters:
+        molecule: dict of {str: list of float}
+            A dictionary that contains the atom names and coordinates for every atom
+            in a molecule
+
+    Returns
+        bond_lengths: list of tuple(str, float)
+            A list that contains every unique pair of atoms and their bond lengths
     
     """
     dup = []
