@@ -80,18 +80,14 @@ data = [
     ("Ar", 1.908, 3.304)
 ]
 
-# Create the XYZ file
 xyz_file_path = "argon_trimer.xyz"
 
 with open(xyz_file_path, "w") as file:
-    # Write the number of atoms
     file.write(str(3))
-    
-    # Write the comment line
-    file.write("Argon trimer")
+    file.write("\nArgon trimer\n")
     
     # Write the atomic data
     for atom in data:
         symbol, x, y = atom
-        file.write(f"{symbol} {x:.6f} {y:.6f}\n")
+        file.write(f"{symbol}   {x:.6f}   {y:.6f}\n")
 
