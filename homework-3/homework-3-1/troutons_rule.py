@@ -8,15 +8,20 @@ import numpy as np
 from scipy.stats import t
 
 
-#Import trouton.csv, which includes substances
+#Import trouton.csv
 trouton = pd.read_csv("trouton.csv")
 
+#Sort the data in ascending order boiling points
 sorted_trouton = trouton.sort_values(by="T_B (K)")
 
+#Extract the boiling points
 sorted_boil = sorted_trouton["T_B (K)"]
+
+#Extract the enthalpies of vaporization and convert to J/mol
 sorted_enth_vapor = (sorted_trouton["H_v (kcal/mol)"].values) * 4184
 
 
+#Use ordinary least squares to get entropy and intercept parameters
 def ols_slope(x, y):
     x_mean = np.mean(x)
     y_mean = np.mean(y)
@@ -36,30 +41,38 @@ def ols(x, y):
     return slope, intercept
 
 entropy, intercept = ols(sorted_boil, sorted_enth_vapor)
-#Entropy of vaporization = 103.85486 J / mol * K
+#Entropy of vaporization = 103.85486 J/mol * K
 #Enthalpy of vaporization = -4844.6 J/mol * K when the boiling point is 0K (this is the intercept).
+
+
 
 line = entropy * sorted_boil + intercept
 residuals = sorted_enth_vapor - line
 
+
+#calculate sum of squared errors
 def sse(residuals):
     return np.sum(residuals ** 2)
 
+#Use sum of squared errors to calculate the variance
 def variance(residuals):
     return sse(residuals) / (len(residuals) - 2)
 
+#calculate the standard error of the slope
 def se_slope(x, residuals):
     numerator = variance(residuals)
     x_mean = np.mean(x)
     denominator = np.sum((x - x_mean) ** 2)
     return np.sqrt(numerator / denominator)
 
+#calculate the standard error of the intercept
 def se_intercept(x, residuals):
     numerator = variance(residuals)
     x_mean = np.mean(x)
     denominator = len(x) * np.sum((x - x_mean) ** 2)
     return np.sqrt(numerator / denominator)
 
+#calculate the confidence interval of the slope
 def confidence_interval_slope(x, residuals, confidence_level):
     se = se_slope(x, residuals)
     n_data_points = len(x)
@@ -67,6 +80,9 @@ def confidence_interval_slope(x, residuals, confidence_level):
     alpha = 1 - confidence_level
     critical_t_value = t.ppf(1 - alpha/2, df)
     return critical_t_value * se
+
+
+#calculate the confidence interval of the intercept
 
 def confidence_interval_intercept(x, residuals, confidence_level):
     # Calculate the standard error of the intercept
@@ -81,12 +97,14 @@ def confidence_interval_intercept(x, residuals, confidence_level):
     # Calculate the confidence interval
     return critical_t_value * se
 
+
+#Calculate the confidence interval of the slope and intercept with 95% confidence
 ci_slope = confidence_interval_slope(sorted_boil, residuals, 0.95)
 ci_intercept = confidence_interval_intercept(sorted_boil, residuals, 0.95)
-print(ci_slope)
-print(ci_intercept)
+#print(ci_slope)
+#print(ci_intercept)
 
-
+#Create dictionary to map colors to substance class
 colors = {
     "Perfect liquids":"r",
     "Liquids subject to quantum effects":"b",
@@ -94,7 +112,7 @@ colors = {
     "Metals":'tab:purple'
 }
 
-
+#Plot the data points and the fitted line
 plt.plot(sorted_boil, line, label="Linear fit")
 
 added_classes = set()
@@ -113,7 +131,7 @@ for index, row in sorted_trouton.iterrows():
 
 plt.xlabel("Boiling point (K)", labelpad=20, fontsize=13)
 plt.ylabel(r"Enthalpies of Vaporization $(J / mol \cdot K)$", labelpad=20, fontsize=13)
-plt.title("Trouton's Rule")
+plt.title("Trouton's Rule", fontsize=14)
 
 
 plt.text(100, 280000, r'$H_v = a \cdot T_b + b$', fontsize=13)
@@ -122,8 +140,7 @@ plt.text(100, 220000, r'b = $-4.84 \pm 1.31$ kJ/mol', fontsize=13)
 
 plt.gca().spines['top'].set_visible(False)
 plt.gca().spines['right'].set_visible(False)
-plt.gca().spines['bottom'].set_visible(False)
-plt.gca().spines['left'].set_visible(False)
+
 
 plt.legend(fontsize=12, bbox_to_anchor=(.975,.3))
 plt.show()
