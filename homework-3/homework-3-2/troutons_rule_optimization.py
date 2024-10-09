@@ -41,6 +41,8 @@ line = a_opt * sorted_boil + b_opt
 
 
 #Make the plot
+
+plt.figure(figsize=(12, 8))
 plt.plot(sorted_boil, line, label="Linear fit")
 
 added_classes = set()
@@ -71,7 +73,7 @@ plt.gca().spines['right'].set_visible(False)
 
 
 plt.legend(fontsize=12, bbox_to_anchor=(.975,.3))
-plt.savefig('troutons_rule_optimization.png', format='png', dpi=300)
+plt.savefig('troutons_rule_optimization.png', bbox_inches='tight', dpi=300)
 plt.show()
 
 #The slopes calculated using both linear regression and numerical optimization are 
