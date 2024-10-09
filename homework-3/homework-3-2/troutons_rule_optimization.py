@@ -71,6 +71,7 @@ plt.gca().spines['right'].set_visible(False)
 
 
 plt.legend(fontsize=12, bbox_to_anchor=(.975,.3))
+plt.savefig('troutons_rule_optimization.png', format='png', dpi=300)
 plt.show()
 
 #The slopes calculated using both linear regression and numerical optimization are 
@@ -81,6 +82,5 @@ plt.show()
 #better suited for this scenario. However, the calculation speeds cannot be 
 #compared given the small size of the data set. Both methods effectively ran instantaneously.
 
-plt.savefig('troutons_rule_optimization.png', format='png', dpi=300)
 
 
