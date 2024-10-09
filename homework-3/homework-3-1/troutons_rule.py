@@ -113,6 +113,9 @@ colors = {
 }
 
 #Plot the data points and the fitted line
+
+plt.figure(figsize=(12, 8))  
+
 plt.plot(sorted_boil, line, label="Linear fit")
 
 added_classes = set()
@@ -143,6 +146,7 @@ plt.gca().spines['right'].set_visible(False)
 
 
 plt.legend(fontsize=12, bbox_to_anchor=(.975,.3))
+plt.savefig('troutons_rule.png', bbox_inches='tight', dpi=300)
 plt.show()
 
 #The entropy of vaporization was calculated to be 103.85 +/- 6.39 J/mol*K. 
@@ -151,5 +155,3 @@ plt.show()
 #These compounds deviate from the relationship the data was plotted to, 
 #whereas compounds with low boiling points correlate strongly to the fitted equation. 
 #Therefore, it can be concluded the Trouton's Rule holds true for lower boiling points.
-
-plt.savefig('troutons_rule.png', format='png', dpi=300)
