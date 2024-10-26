@@ -6,7 +6,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import multivariate_normal
+from scipy.stats import norm
 
 L = 7
 
@@ -101,7 +101,7 @@ def rando_sample_kii(n_points):
         y = np.random.uniform(-L, L, points)
         z = np.random.uniform(-L, L, points)
 
-        integrand = (-1 / 2) * psi_1s(x, y, -z) * laplacian_psi_1s(x, y, z)
+        integrand = (-1 / 2) * psi_1s(x, y, z) * laplacian_psi_1s(x, y, - z)
         integral.append(np.mean(integrand) * 8 * (L ** 3))
     
     return integral
@@ -140,12 +140,12 @@ def important_sample_kii(n_points):
     integral = []
 
     for points in n_points:
-        gaussian = multivariate_normal(mean=mean_d, cov=covariance)     #Define gaussian distribution
-        samples = gaussian.rvs(points)
-        x, y, z = samples[:,0], samples[:,1], samples[:,2]
+        x = norm.rvs(size=points)
+        y = x
+        z = x
         
         numer = (-1 / 2) * psi_1s(x, y, z) * laplacian_psi_1s(x, y, z)
-        denom = gaussian.pdf(samples)
+        denom = norm.pdf(x) * norm.pdf(y) * norm.pdf(z)
         integrand = numer / denom
 
         integral.append(np.mean(integrand) * 8)
@@ -189,8 +189,8 @@ def rando_off_diag(n_list):
 
     for point in n_list:
         x = np.random.uniform(-L, L, point)
-        y = x
-        z = x
+        y = np.random.uniform(-L, L, point)
+        z = np.random.uniform(-L, L, point)
 
         integrand =  (-1 / 2) * psi_1s(x, y, z + 0.7) * laplacian_psi_1s(x, y, z - 0.7)
         integral.append(np.mean(integrand) * 8 * (L ** 3))
@@ -230,12 +230,12 @@ def important_off_diag(n_points):
     integral = []
 
     for points in n_points:
-        gaussian = multivariate_normal(mean=mean_d, cov=covariance)     #Define gaussian distribution
-        samples = gaussian.rvs(points)
-        x, y, z = samples[:,0], samples[:,1], samples[:,2]
+        x = norm.rvs(size=points)
+        y = x
+        z = x
         
         numer = (-1 / 2) * psi_1s(x, y, z + 0.7) * laplacian_psi_1s(x, y, z - 0.7)
-        denom = gaussian.pdf(samples)
+        denom = norm.pdf(x) * norm.pdf(y) * norm.pdf(z)
         integrand = numer / denom
 
         integral.append(np.mean(integrand) * 8)
