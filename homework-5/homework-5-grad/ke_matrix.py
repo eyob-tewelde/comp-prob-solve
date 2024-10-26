@@ -60,10 +60,9 @@ def laplacian_psi_1s(x, y, z, Z=1, a0=1):
     Returns:
         float: Normalized hydrogen 1s orbital at (x, y, z)
     """
-
-    r = np.sqrt(x**2 + y**2 + z**2)
-    first_derivative = (-1 / np.sqrt(np.pi)) * np.exp(-r)           #First derivative of psi_1s
-    second_derivative = (1 / np.sqrt(np.pi)) * np.exp(-r)           #Second derivative of psi_1s
+    r = np.sqrt(x ** 2 + y ** 2 + z ** 2) 
+    first_derivative = -psi_1s(x, y, z)           #First derivative of psi_1s
+    second_derivative = psi_1s(x, y, z)           #Second derivative of psi_1s
 
     sum = second_derivative + ((2 / r) * first_derivative)
 
@@ -121,9 +120,6 @@ plt.show()
 #2.1.3 Compute the Diagonal Kinetic Energy Matrix Element Using Importance Sampling
 
 
-mean_d = [0,0,0]
-covariance = np.eye(3) * 2.5
-
 def important_sample_kii(n_points):
     """
     Uses importance sampling to calculate the diagonal kinetic energy matrix element (Kii)
@@ -141,14 +137,14 @@ def important_sample_kii(n_points):
 
     for points in n_points:
         x = norm.rvs(size=points)
-        y = x
-        z = x
+        y = norm.rvs(size=points)
+        z = norm.rvs(size=points)
         
         numer = (-1 / 2) * psi_1s(x, y, z) * laplacian_psi_1s(x, y, z)
         denom = norm.pdf(x) * norm.pdf(y) * norm.pdf(z)
         integrand = numer / denom
 
-        integral.append(np.mean(integrand) * 8)
+        integral.append(np.mean(integrand))
 
 
     return integral
@@ -157,7 +153,7 @@ def important_sample_kii(n_points):
 
 #Compute Kii with importance sampling
 important_diag_ke_matrix = important_sample_kii(n_list)
-print(important_diag_ke_matrix[-1])
+# print(important_diag_ke_matrix[-1])
 
 plt.plot(n_list, important_diag_ke_matrix)
 plt.xlabel('Number of points sampled')
@@ -200,6 +196,7 @@ def rando_off_diag(n_list):
 
 #Compute Kij with random sampling
 rando_off_diag_ke_matrix = rando_off_diag(n_list)
+# print(rando_off_diag_ke_matrix[-1])
 
 plt.plot(n_list, rando_off_diag_ke_matrix)
 plt.xlabel('Number of points sampled')
@@ -231,14 +228,14 @@ def important_off_diag(n_points):
 
     for points in n_points:
         x = norm.rvs(size=points)
-        y = x
-        z = x
+        y = norm.rvs(size=points)
+        z = norm.rvs(size=points)
         
         numer = (-1 / 2) * psi_1s(x, y, z + 0.7) * laplacian_psi_1s(x, y, z - 0.7)
         denom = norm.pdf(x) * norm.pdf(y) * norm.pdf(z)
         integrand = numer / denom
 
-        integral.append(np.mean(integrand) * 8)
+        integral.append(np.mean(integrand))
 
 
     return integral
@@ -247,12 +244,13 @@ def important_off_diag(n_points):
 #Compute Kij with importance sampling
 important_off_diag_ke_matrix = important_off_diag(n_list)
 
-# plt.plot(n_list, important_off_diag_ke_matrix)
-# plt.xlabel('Number of points sampled')
-# plt.ylabel('Integral Value')
-# plt.xscale('log')
-# plt.title('Off-Diagonal Kinetic Energy Matrix Element (Important Sampling)')
-# plt.gca().spines['top'].set_visible(False)
-# plt.gca().spines['right'].set_visible(False)
-# plt.grid(True)
-# plt.show()
+
+plt.plot(n_list, important_off_diag_ke_matrix)
+plt.xlabel('Number of points sampled')
+plt.ylabel('Integral Value')
+plt.xscale('log')
+plt.title('Off-Diagonal Kinetic Energy Matrix Element (Important Sampling)')
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['right'].set_visible(False)
+plt.grid(True)
+plt.show()
