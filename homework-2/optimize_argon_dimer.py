@@ -50,14 +50,14 @@ def minimize_lennard_jones(guess):
 print(minimize_lennard_jones(4)) #Lennard-Jones potential for two Ar atoms is minimized at 3.816 Angstroms
 
 
-#Plot the Lennard-Jones potential and equilibrium distance
-x_axis = np.linspace(3, 6, 100)
-plt.plot(x_axis, lennard_jones(x_axis))
-plt.axvline(x=3.816, color ='r', linestyle="--", linewidth='1', label = "Equilibrium Bond Length")
-plt.axhline(y=0, color="gray", linestyle="--", linewidth='1')
-plt.xlim(right=6)
-plt.xlabel("$r\ (Å)$")
-plt.ylabel("$V(r)$")
-plt.legend()
-plt.title("Lennard-Jones Potential for $Ar_2$")
-plt.show()
+# Plot the Lennard-Jones potential and equilibrium distance
+# x_axis = np.linspace(3, 6, 100)
+# plt.plot(x_axis, lennard_jones(x_axis))
+# plt.axvline(x=3.816, color ='r', linestyle="--", linewidth='1', label = "Equilibrium Bond Length")
+# plt.axhline(y=0, color="gray", linestyle="--", linewidth='1')
+# plt.xlim(right=6)
+# plt.xlabel("$r\ (Å)$")
+# plt.ylabel("$V(r)$")
+# plt.legend()
+# plt.title("Lennard-Jones Potential for $Ar_2$")
+# plt.show()
