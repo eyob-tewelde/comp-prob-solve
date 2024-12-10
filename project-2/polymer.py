@@ -27,15 +27,15 @@ def initialize_chain(n_particles, box_size, r0):
             An array containing the intialized positions of the particles
     """
 
-    positions = np.zeros((n_particles, 3))
-    current_position = [box_size/2, box_size/2, box_size/2]
-    positions[0] = current_position
+    positions = np.zeros((n_particles, 3))  #Initialize empty array
+    current_position = [box_size/2, box_size/2, box_size/2] #Store coordinates of the center of the box
+    positions[0] = current_position #Set the intial position to the center of the box
     for i in range(n_particles):
-        v = np.random.rand(3)
-        direction = v / np.linalg.norm(v)
-        next_position = current_position + (r0 * direction)
-        positions[i] = apply_pbc(next_position, box_size)
-        current_position = positions[i]
+        v = np.random.rand(3)   #Generate random unit vector
+        direction = v / np.linalg.norm(v)   #Calculate the direction of the random unit vector
+        next_position = current_position + (r0 * direction) #Calculate the position of new particle
+        positions[i] = apply_pbc(next_position, box_size)   #Update the position of new particle
+        current_position = positions[i] #Update current position
     return positions
 
 def initialize_velocities(n_particles, target_temp, mass):
@@ -54,9 +54,8 @@ def initialize_velocities(n_particles, target_temp, mass):
         ndarray:
             Contains the initial particle velocities
     """
-
-    velocities = np.random.normal(0, np.sqrt((k_B * target_temp)) / mass, (n_particles, 3))
-    velocities -= np.mean(velocities)
+    velocities = np.random.normal(0, np.sqrt((k_B * target_temp)) / mass, (n_particles, 3)) #Generate random velocities from Maxwell-Boltzmann distribution
+    velocities -= np.mean(velocities)   #Remove net momentum
     return velocities
 
 def apply_pbc(position, box_size):
@@ -69,9 +68,12 @@ def apply_pbc(position, box_size):
         box_size: int or float
             Length of simulation box
     
-    Returns:    
+    Returns:
+        int:    
     """
     return position % box_size
+#Fix docstring of apply_pbc function
+
 
 def compute_harmonic_forces(positions, k, r0, box_size):
     """
@@ -92,21 +94,20 @@ def compute_harmonic_forces(positions, k, r0, box_size):
             Contains the force felt between all particles and their neighbors
     """
 
-    forces = np.zeros_like(positions)
+    forces = np.zeros_like(positions)   #Intialize empty array
     for i in range(n_particles - 1):
-        displacement = positions[i+1] - positions[i]
+        displacement = positions[i+1] - positions[i]    #Calculate minimum image distance between two neighboring particles
         displacement -= box_size * np.round(displacement / box_size)
         distance = np.linalg.norm(displacement)
-        force_magnitude = -k * (distance - r0)
+        force_magnitude = -k * (distance - r0) #Calculate force between two neighboring particles
         force = force_magnitude * (displacement / distance)
-        forces[i] -= force
+        forces[i] -= force  #update force array
         forces[i+1] += force
-        # potential_energy = k * ((distance - r0) ** 2) / 2
-    return forces #, potential_energy
+    return forces
 
 def compute_lennard_jones_forces(positions, sigma, box_size, interaction_type):
     """
-    Computes a repulsive or attractive force between all particles if they are two
+    Computes a repulsive or attractive force between particles if they are two
     or greater than two spacers apart, respectively. 
 
     Parameters:
@@ -126,33 +127,28 @@ def compute_lennard_jones_forces(positions, sigma, box_size, interaction_type):
             Contains the repulsive or attractive forces felt between all non-bonded particles.
     """
 
-    forces = np.zeros_like(positions)
-    potential_energy = 0
+    forces = np.zeros_like(positions) #Initialize empty array
     for i in range(n_particles):
         for j in range(i+1, n_particles):
-            if interaction_type == 'repulsive' and np.abs(i - j) == 2:
+            if interaction_type == 'repulsive' and np.abs(i - j) == 2:  #check if interaction type is repulsive and particles are two spacers apart
                 epsilon = epsilon_repulsive
-            elif interaction_type == 'attractive' and np.abs(i - j) > 2:
+            elif interaction_type == 'attractive' and np.abs(i - j) > 2:    #check if interaction type is attractive and particles are more than two spacers apart
                 epsilon = epsilon_attractive
             else:
                 continue
-            displacement = positions[j] - positions[i]
+            displacement = positions[j] - positions[i]  #calculate distance between two particles
             displacement -= box_size * np.round(displacement / box_size)
             distance = np.linalg.norm(displacement)
-            if distance < cutoff:
+            if distance < cutoff: #check if the distance between two particles is below cutoff length
                 force_magnitude = 24 * epsilon * ((sigma / distance) ** 12 - 0.5 * (sigma / distance) ** 6) / distance
-                force = force_magnitude * (displacement / distance)
-                forces[i] -= force
+                force = force_magnitude * (displacement / distance) #Calculate force between two particles
+                forces[i] -= force #Update force array
                 forces[j] += force
-                # if interaction_type == "repulsive":
-                    # potential_energy += 4 * epsilon * ((sigma / distance)**12 - (sigma / distance)**6 + 0.25)
-            # if interaction_type == "attractive":
-                    # potential_energy += 4 * epsilon * ((sigma / distance)**12 - (sigma / distance)**6)
-    return forces #, potential_energy
+    return forces
 
 def velocity_verlet(positions, velocities, forces, dt, mass, k):
     """
-    Computes the force felt between neighboring particles in the polymer
+    Updates the positions of particles in a polymer after an applied force
 
     Parameters:
         positions: list of (float, float)
@@ -170,17 +166,14 @@ def velocity_verlet(positions, velocities, forces, dt, mass, k):
         ndarray:
             Contains the new position of each particle after a time step
     """
-    # print(f"forces: {forces} forceshape: {np.shape}")
-    # print(f"Velocities: {velocities}")
-    velocities += 0.5 * forces / mass * dt
-    positions += velocities * dt
-    positions = apply_pbc(positions, box_size)
-    new_forces_harmonic = compute_harmonic_forces(positions, k, r0, box_size)
-    new_forces_repulsive = compute_lennard_jones_forces(positions, sigma, box_size, 'repulsive')
-    new_forces_attractive = compute_lennard_jones_forces(positions, sigma, box_size, 'attractive')
-    forces_new = new_forces_harmonic + new_forces_repulsive + new_forces_attractive
-    # print(forces_new)
-    velocities += 0.5 * forces_new / mass * dt
+    velocities += 0.5 * forces / mass * dt  #Update the velocity of each particle
+    positions += velocities * dt    #Update the positions of each particle
+    positions = apply_pbc(positions, box_size)  #Apply periodic boundary conditions to new positions
+    new_forces_harmonic = compute_harmonic_forces(positions, k, r0, box_size)   #Compute new harmonic forces
+    new_forces_repulsive = compute_lennard_jones_forces(positions, sigma, box_size, 'repulsive')    #Compute new repulsive forces
+    new_forces_attractive = compute_lennard_jones_forces(positions, sigma, box_size, 'attractive') #Compute new attractive forces
+    forces_new = new_forces_harmonic + new_forces_repulsive + new_forces_attractive #Sum the new forces
+    velocities += 0.5 * forces_new / mass * dt #Update the velocity of each particle
     return positions, velocities, forces_new
 
 def rescale_velocities(velocities, target_temperature, mass):
@@ -200,10 +193,10 @@ def rescale_velocities(velocities, target_temperature, mass):
         ndarray:
             Contains the adjusted velocities of each particle
     """
-    kinetic_energy = 0.5 * mass * sum(np.linalg.norm(velocities, axis=1) ** 2)
-    current_temperature = (2/3) * kinetic_energy / (n_particles * k_B)
-    scaling_factor = np.sqrt(target_temperature / current_temperature)
-    velocities *= scaling_factor
+    kinetic_energy = 0.5 * mass * sum(np.linalg.norm(velocities, axis=1) ** 2) #Calculate the overall kinetic energy
+    current_temperature = (2/3) * kinetic_energy / (n_particles * k_B)  #Calculate the current temperature
+    scaling_factor = np.sqrt(target_temperature / current_temperature) #Calculate scaling factor
+    velocities *= scaling_factor    #Adjust current velocities by scaling factor
     return velocities
 
 def calc_gyration_radius(positions):
@@ -219,9 +212,9 @@ def calc_gyration_radius(positions):
             Radius of gyration
     """
 
-    com = np.mean(positions, axis=0)
-    Rg_squared = np.mean(np.sum((positions - com) ** 2))
-    Rg = np.sqrt(Rg_squared)
+    com = np.mean(positions, axis=0)    #Calculate the center of mass of the polymer
+    Rg_squared = np.mean(np.sum((positions - com) ** 2))    #Calculate radius of gyration squared
+    Rg = np.sqrt(Rg_squared)    #Calculate the radius of gyration
     return Rg
 
 def calc_end_to_end_dist(positions):
@@ -237,5 +230,60 @@ def calc_end_to_end_dist(positions):
             End-to-end distance
     """
 
-    Ree = np.linalg.norm(positions[-1] - positions[0])
+    Ree = np.linalg.norm(positions[-1] - positions[0])  #Calculate the end to end distance
     return Ree
+
+def calc_harmonic_potential_energy(positions, k):
+    """
+    Computes the overall harmonic bond potential energy of the polymer.
+
+    Parameters:
+        positions: list of (float, float)
+            Positions of the particles
+        k: int or float
+            Spring constant
+
+    Returns:
+        int or float:
+            Overall harmonic bond potential energy
+    """
+    potential_energy = 0    #Initialize potential energy
+    for i in range(n_particles - 1):
+        displacement = positions[i+1] - positions[i]
+        displacement -= box_size * np.round(displacement / box_size)
+        distance = np.linalg.norm(displacement) #Calculate distance between two particles
+        potential_energy += k * ((distance - r0) ** 2) / 2   #Calculate harmonic bond potential between two particles and add to overall harmonic bond potential
+    return potential_energy
+
+def calc_LJ_potential_energy(positions, interaction_type):
+    """
+    Computes the overall Lennard-Jones potential energy of the polymer.
+
+    Parameters:
+        positions: list of (float, float)
+            Positions of the particles
+        interaction_type: str
+            Labels the interaction as repulsive or attractive
+
+    Returns:
+        int or float:
+            Overall Lennard-Jones potential energy
+    
+    """
+    potential_energy = 0    #Initialize potential energy
+    for i in range(n_particles):
+        for j in range(i+1, n_particles):
+            displacement = positions[j] - positions[i]
+            displacement -= box_size * np.round(displacement / box_size)
+            distance = np.linalg.norm(displacement) #Calculate distance between two particles
+
+            if interaction_type == 'repulsive' and np.abs(i - j) == 2:  #Check if the particles are repulsively interacting and are two spacers apart
+                epsilon = epsilon_repulsive
+                if distance < cutoff:
+                    potential_energy += 4 * epsilon * ((sigma / distance)**12 - (sigma / distance)**6 + 0.25)   #Calculate the repulsive potential energy and update overall energy
+            elif interaction_type == 'attractive' and np.abs(i - j) > 2:    #Check if the particles are attractively interacting and are more than two spacers apart
+                epsilon = epsilon_attractive 
+                potential_energy += 4 * epsilon * ((sigma / distance)**12 - (sigma / distance)**6) #Calculate the attractice potential energy and update overall energy
+            else:
+                continue
+    return potential_energy
