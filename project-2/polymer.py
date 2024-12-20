@@ -1,14 +1,20 @@
 #MD simulation of a polymer chain at constant T and V
 import numpy as np
+np.random.seed(42)
 
 k_B = 1  # Boltzman constant
 epsilon_attractive = 0.5  # Depth of attractive LJ potential
 n_particles = 20  # Number of particles
 epsilon_repulsive = 1.0  # Depth of repulsive LJ potential
 sigma = 1.0  # LJ potential parameter
-cutoff = 2 ** (1/6) * sigma
-box_size = 100.0  # Size of the cubic box
+cutoff = 2 ** (1/6) * sigma # Cutoff distance
+box_size = 100  # Size of the cubic box
 r0 = 1.0  # Equilibrium bond length
+k = 1.0  # Spring constant
+mass = 1.0  # Particle mass
+dt = 0.01  # Time step
+total_steps = 10000  # Number of steps
+rescale_interval = 100  # Steps between velocity rescaling
 
 def initialize_chain(n_particles, box_size, r0):
     """
@@ -54,8 +60,8 @@ def initialize_velocities(n_particles, target_temp, mass):
         ndarray:
             Contains the initial particle velocities
     """
-    velocities = np.random.normal(0, np.sqrt((k_B * target_temp)) / mass, (n_particles, 3)) #Generate random velocities from Maxwell-Boltzmann distribution
-    velocities -= np.mean(velocities)   #Remove net momentum
+    velocities = np.random.normal(0, np.sqrt((k_B * target_temp) / mass), (n_particles, 3)) # Generate random velocities from Maxwell-Boltzmann distribution
+    velocities -= np.mean(velocities)   # Remove net momentum
     return velocities
 
 def apply_pbc(position, box_size):
@@ -69,11 +75,10 @@ def apply_pbc(position, box_size):
             Length of simulation box
     
     Returns:
-        int:    
+        ndarray:
+            Updated coordinates of the particle     
     """
     return position % box_size
-#Fix docstring of apply_pbc function
-
 
 def compute_harmonic_forces(positions, k, r0, box_size):
     """
@@ -193,13 +198,14 @@ def rescale_velocities(velocities, target_temperature, mass):
         ndarray:
             Contains the adjusted velocities of each particle
     """
-    kinetic_energy = 0.5 * mass * sum(np.linalg.norm(velocities, axis=1) ** 2) #Calculate the overall kinetic energy
+    kinetic_energy = 0.5 * mass * np.sum(np.linalg.norm(velocities, axis=1) ** 2) #Calculate the overall kinetic energy
     current_temperature = (2/3) * kinetic_energy / (n_particles * k_B)  #Calculate the current temperature
     scaling_factor = np.sqrt(target_temperature / current_temperature) #Calculate scaling factor
     velocities *= scaling_factor    #Adjust current velocities by scaling factor
+
     return velocities
 
-def calc_gyration_radius(positions):
+def calc_gyration_radius(positions, box_size):
     """
     Computes the radius of gyration for a polymer
 
@@ -213,11 +219,13 @@ def calc_gyration_radius(positions):
     """
 
     com = np.mean(positions, axis=0)    #Calculate the center of mass of the polymer
+
     Rg_squared = np.mean(np.sum((positions - com) ** 2))    #Calculate radius of gyration squared
+    
     Rg = np.sqrt(Rg_squared)    #Calculate the radius of gyration
     return Rg
 
-def calc_end_to_end_dist(positions):
+def calc_end_to_end_dist(positions, box_size):
     """
     Computes the end-to-end distance for a polymer
 
@@ -231,6 +239,7 @@ def calc_end_to_end_dist(positions):
     """
 
     Ree = np.linalg.norm(positions[-1] - positions[0])  #Calculate the end to end distance
+    Ree -= box_size * np.round(Ree / box_size)
     return Ree
 
 def calc_harmonic_potential_energy(positions, k):
