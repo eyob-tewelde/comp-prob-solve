@@ -3,14 +3,12 @@ import numpy as np
 np.random.seed(42)
 
 k_B = 1  # Boltzman constant
-epsilon_attractive = 0.5  # Depth of attractive LJ potential
+e_attract = 0.5 # Depthh of attractive LJ potential
 n_particles = 20  # Number of particles
-epsilon_repulsive = 1.0  # Depth of repulsive LJ potential
 sigma = 1.0  # LJ potential parameter
 cutoff = 2 ** (1/6) * sigma # Cutoff distance
 box_size = 100  # Size of the cubic box
 r0 = 1.0  # Equilibrium bond length
-k = 1.0  # Spring constant
 mass = 1.0  # Particle mass
 dt = 0.01  # Time step
 total_steps = 10000  # Number of steps
@@ -61,7 +59,7 @@ def initialize_velocities(n_particles, target_temp, mass):
             Contains the initial particle velocities
     """
     velocities = np.random.normal(0, np.sqrt((k_B * target_temp) / mass), (n_particles, 3)) # Generate random velocities from Maxwell-Boltzmann distribution
-    velocities -= np.mean(velocities)   # Remove net momentum
+    velocities -= np.mean(velocities, axis=0)   # Remove net momentum
     return velocities
 
 def apply_pbc(position, box_size):
@@ -110,7 +108,7 @@ def compute_harmonic_forces(positions, k, r0, box_size):
         forces[i+1] += force
     return forces
 
-def compute_lennard_jones_forces(positions, sigma, box_size, interaction_type):
+def compute_lennard_jones_forces(positions, eps, sigma, box_size, interaction_type):
     """
     Computes a repulsive or attractive force between particles if they are two
     or greater than two spacers apart, respectively. 
@@ -136,9 +134,9 @@ def compute_lennard_jones_forces(positions, sigma, box_size, interaction_type):
     for i in range(n_particles):
         for j in range(i+1, n_particles):
             if interaction_type == 'repulsive' and np.abs(i - j) == 2:  #check if interaction type is repulsive and particles are two spacers apart
-                epsilon = epsilon_repulsive
+                epsilon = eps
             elif interaction_type == 'attractive' and np.abs(i - j) > 2:    #check if interaction type is attractive and particles are more than two spacers apart
-                epsilon = epsilon_attractive
+                epsilon = eps
             else:
                 continue
             displacement = positions[j] - positions[i]  #calculate distance between two particles
@@ -151,7 +149,7 @@ def compute_lennard_jones_forces(positions, sigma, box_size, interaction_type):
                 forces[j] += force
     return forces
 
-def velocity_verlet(positions, velocities, forces, dt, mass, k):
+def velocity_verlet(positions, velocities, forces, dt, mass, k, e_repulsive):
     """
     Updates the positions of particles in a polymer after an applied force
 
@@ -175,8 +173,8 @@ def velocity_verlet(positions, velocities, forces, dt, mass, k):
     positions += velocities * dt    #Update the positions of each particle
     positions = apply_pbc(positions, box_size)  #Apply periodic boundary conditions to new positions
     new_forces_harmonic = compute_harmonic_forces(positions, k, r0, box_size)   #Compute new harmonic forces
-    new_forces_repulsive = compute_lennard_jones_forces(positions, sigma, box_size, 'repulsive')    #Compute new repulsive forces
-    new_forces_attractive = compute_lennard_jones_forces(positions, sigma, box_size, 'attractive') #Compute new attractive forces
+    new_forces_repulsive = compute_lennard_jones_forces(positions, e_repulsive, sigma, box_size, 'repulsive')    #Compute new repulsive forces
+    new_forces_attractive = compute_lennard_jones_forces(positions, e_attract, sigma, box_size, 'attractive') #Compute new attractive forces
     forces_new = new_forces_harmonic + new_forces_repulsive + new_forces_attractive #Sum the new forces
     velocities += 0.5 * forces_new / mass * dt #Update the velocity of each particle
     return positions, velocities, forces_new
@@ -205,7 +203,7 @@ def rescale_velocities(velocities, target_temperature, mass):
 
     return velocities
 
-def calc_gyration_radius(positions, box_size):
+def calc_gyration_radius(positions):
     """
     Computes the radius of gyration for a polymer
 
@@ -220,12 +218,12 @@ def calc_gyration_radius(positions, box_size):
 
     com = np.mean(positions, axis=0)    #Calculate the center of mass of the polymer
 
-    Rg_squared = np.mean(np.sum((positions - com) ** 2))    #Calculate radius of gyration squared
+    Rg_squared = np.mean(np.sum((positions - com) ** 2, axis=1))    #Calculate radius of gyration squared
     
     Rg = np.sqrt(Rg_squared)    #Calculate the radius of gyration
     return Rg
 
-def calc_end_to_end_dist(positions, box_size):
+def calc_end_to_end_dist(positions):
     """
     Computes the end-to-end distance for a polymer
 
@@ -239,7 +237,7 @@ def calc_end_to_end_dist(positions, box_size):
     """
 
     Ree = np.linalg.norm(positions[-1] - positions[0])  #Calculate the end to end distance
-    Ree -= box_size * np.round(Ree / box_size)
+    # Ree -= box_size * np.round(Ree / box_size)
     return Ree
 
 def calc_harmonic_potential_energy(positions, k):
@@ -264,7 +262,7 @@ def calc_harmonic_potential_energy(positions, k):
         potential_energy += k * ((distance - r0) ** 2) / 2   #Calculate harmonic bond potential between two particles and add to overall harmonic bond potential
     return potential_energy
 
-def calc_LJ_potential_energy(positions, interaction_type):
+def calc_LJ_potential_energy(positions, eps, interaction_type):
     """
     Computes the overall Lennard-Jones potential energy of the polymer.
 
@@ -287,11 +285,11 @@ def calc_LJ_potential_energy(positions, interaction_type):
             distance = np.linalg.norm(displacement) #Calculate distance between two particles
 
             if interaction_type == 'repulsive' and np.abs(i - j) == 2:  #Check if the particles are repulsively interacting and are two spacers apart
-                epsilon = epsilon_repulsive
+                epsilon = eps
                 if distance < cutoff:
                     potential_energy += 4 * epsilon * ((sigma / distance)**12 - (sigma / distance)**6 + 0.25)   #Calculate the repulsive potential energy and update overall energy
             elif interaction_type == 'attractive' and np.abs(i - j) > 2:    #Check if the particles are attractively interacting and are more than two spacers apart
-                epsilon = epsilon_attractive 
+                epsilon = eps 
                 potential_energy += 4 * epsilon * ((sigma / distance)**12 - (sigma / distance)**6) #Calculate the attractice potential energy and update overall energy
             else:
                 continue
